@@ -15,10 +15,9 @@ class ProductosApp(QtGui.QWidget):
         super(ProductosApp, self).__init__()
         self.ui = Ui_ProductosWindow()
 	self.ui.setupUi(self)
-	self.set_listeners()
 	self.load_productos()
 	self.load_marcas()
-	self.delete()
+	self.set_listeners()
 	self.show()
        
 
@@ -27,7 +26,10 @@ class ProductosApp(QtGui.QWidget):
         self.ui.btn_search.clicked.connect(self.load_productos_by_search)
 	self.ui.combo_marcas.activated[int].connect(self.load_productos_por_marca)
         self.ui.btn_delete.clicked.connect(self.delete)
-
+	self.ui.btn_edit_2.clicked.connect(self.show_edit_form)
+	self.ui.table_productos.doubleClicked.connect(self.show_edit_form)
+	
+  
 
     def delete(self):
         model = self.ui.table_productos.model()
@@ -38,7 +40,7 @@ class ProductosApp(QtGui.QWidget):
             self.errorMessageDialog.showMessage("Debe seleccionar una fila")
             return False
         else:
-            #Obtenemos el rut que es la primary key en la tabla
+            #Obtenemos el codigo que es la primary key en la tabla
             codigo = model.index(index.row(), 0, QtCore.QModelIndex()).data()
             if (control_productos.delete(codigo)):
                 self.load_productos()
@@ -50,6 +52,26 @@ class ProductosApp(QtGui.QWidget):
                 self.ui.errorMessageDialog = QtGui.QErrorMessage(self)
                 self.ui.errorMessageDialog.showMessage("Error al eliminar")
                 return False
+
+    def show_add_form(self):
+        form = view_productos_form.Form(self)
+        form.rejected.connect(self.load_productos)
+        form.exec_()
+
+    
+    def show_edit_form(self):
+        model = self.ui.table_productos.model()
+        index = self.ui.table_productos.currentIndex()
+
+        if index.row() == -1: #No se ha seleccionado una fila
+            self.errorMessageDialog = QtGui.QErrorMessage(self)
+            self.errorMessageDialog.showMessage("Debe seleccionar una fila")
+            return False
+        else:
+            codigo = model.index(index.row(), 0, QtCore.QModelIndex()).data()
+            form = view_productos_form.Form(self, codigo)
+            form.rejected.connect(self.load_productos)
+            form.exec_()
 
 
     def load_marcas(self):
@@ -75,13 +97,7 @@ class ProductosApp(QtGui.QWidget):
             productos = control_productos.get_productos_por_marca(id_marca)
         self.load_productos(productos)
 
-
-
-    def show_add_form(self):
-        form = view_productos_form.Form(self)
-        form.rejected.connect(self.load_productos)
-        form.exec_()
-
+   
     def load_productos(self, productos=None):
         	if productos is None:
             		productos = control_productos.get_productos()

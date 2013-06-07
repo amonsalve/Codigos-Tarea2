@@ -20,6 +20,8 @@ def get_marcas():
     con.close()
     return marcas
 
+
+
 def get_productos():
     con = connect()
     c = con.cursor()
@@ -29,6 +31,18 @@ def get_productos():
     productos = result.fetchall()
     con.close()
     return productos
+
+
+
+def get_productos_por_codigo(codigo):
+    con = connect()
+    c = con.cursor()
+    query = "SELECT * FROM productos WHERE codigo = ?"
+    resultado= c.execute(query, [codigo])
+    productos = resultado.fetchone()
+    con.close()
+    return productos
+
 
 def get_productos_por_marca(id_marca):
     con = connect()
@@ -83,6 +97,13 @@ def agregar(codigo,nombre,descripcion,color,precio):
         print "Error:", e.args[0]
     con.close()
     return exito
+
+
+if __name__ == "__main__":
+
+    productos = get_productos()
+    for producto in productos:
+        print producto["nombre"]
 
 
 
